@@ -119,7 +119,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     model.init_const6 = pyo.Constraint(expr = model.x[5, 0] == x0[5])
     model.init_const7 = pyo.Constraint(expr = model.x[6, 0] == x0[6])
 
-    #model.const8 = pyo.Constraint(expr = (pyo.sqrt(model.x[0, 0]*model.x[0, 0] + model.x[1, 0]*model.x[1, 0] + model.x[2, 0]*model.x[2, 0] + model.x[3, 0]*model.x[3, 0]) == 1)) #unit quaternion
+    #model.const1 = pyo.Constraint(expr = (pyo.sqrt(model.x[0, 0]*model.x[0, 0] + model.x[1, 0]*model.x[1, 0] + model.x[2, 0]*model.x[2, 0] + model.x[3, 0]*model.x[3, 0]) == 1)) #unit quaternion
 
     def final_const_rule(model, i):
         return sum(model.Af[i, j] * model.x[j, model.N] for j in model.xIDX) <= model.bf[i]
@@ -199,10 +199,7 @@ def model_sim():
 
 
 Af = np.eye(7)
-bf = np.array([[1, 0, 0, 0, 0, 0, 0]]).T
-
-print(Af)
-print(bf)
+bf = np.array([1, 0, 0, 0, 0, 0, 0]).T
 
 Q = np.eye(7)
 R = np.eye(3) #10*np.array([1]).reshape(1,1)
