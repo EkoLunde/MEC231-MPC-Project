@@ -1,6 +1,7 @@
 import numpy as np
 import pyomo.environ as pyo
 import matplotlib.pyplot as plt
+from pyquaternion import Quaternion
 
 I_b = (10**6)*np.array([[319, 0, 0],
                [0, 420, 0],
@@ -89,7 +90,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
             for i in model.xIDX:
                 for j in model.xIDX:
                     if t < model.N:
-                        costX += model.x[i, t] * model.Q[i, j] * model.x[j, t]
+                        costX += model.x[i, t] * model.Q[i, j] * model.x[j, t] #Tror kanskje dette må endres pga quaternions
         for t in model.tIDX:
             for i in model.uIDX:
                 for j in model.uIDX:
@@ -199,7 +200,7 @@ def model_sim():
 
 
 Af = np.eye(7)
-bf = np.array([1, 0, 0, 0, 0, 0, 0]).T
+bf = np.array([-1, 0, 0, 0, 0, 0, 0]).T
 
 Q = np.eye(7)
 R = np.eye(3) #10*np.array([1]).reshape(1,1)
@@ -209,8 +210,19 @@ xL = -10.0
 xU = 10.0
 uL = -1.0
 uU = 1.0
-x0 = np.array([0,0,0,1, 0.5, -0.5, 0.5]).T
+x0 = np.array([1,0,0,1, 0.5, -0.5, 0.5]).T
 
 A, B, C = model_linearization(x0)
 
 [model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
+
+plt.plot(x.T)
+plt.ylabel('x')
+plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
+plt.grid()
+fig = plt.figure(figsize=(9, 6))
+plt.plot(u.T)
+plt.ylabel('u')
+plt.legend(("u1","u2","u3"))
+plt.grid()
+plt.show()

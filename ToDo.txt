@@ -1,0 +1,3 @@
+1. Finn ut hvordan kombinere quaternions med pyomo siden x[0] til x[3] er quaterinons.
+    De can ikke alle drives til null slik som skjer nå så et eller annet er fucket
+2. Lage ordentlige constraints
