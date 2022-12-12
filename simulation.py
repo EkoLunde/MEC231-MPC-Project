@@ -104,7 +104,7 @@ def create_polytope_x_and_u(xU,xL,uU,uL):
     
 def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
     A_c, B_c, C_c = model_linearization(x0, I_b)
-    D_c = np.array(np.zeros((3,1)))
+    D_c = np.array(np.zeros((1,3)))
     system = (A_c, B_c, C_c, D_c)
     A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)     
 
