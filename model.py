@@ -4,7 +4,7 @@ import pyomo.dae as dae
 import matplotlib.pyplot as plt
 from utilities import *
 
-def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
+def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_skew):
     model = pyo.ConcreteModel()
     model.N = N
     model.nx = np.size(A, 0)
@@ -79,9 +79,11 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
         else:
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(I_b_inv[i-4, 0]*(-model.x[6, t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3)))
                                 + I_b_inv[i-4, 1]*(model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) - model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3))) 
-                                + I_b_inv[i-4, 2]*(-model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)))) + model.u[i-4,t]) == 0.0 if t < model.N else pyo.Constraint.Skip
+                                + I_b_inv[i-4, 2]*(-model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)))) + sum(model.u[j,t]*b_mag_skew[3*i, j] for j in range(3))) == 0.0 if t < model.N else pyo.Constraint.Skip
     model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
 
+    # Orthogonality constraint
+    model.orthogonality_mag_const = pyo.Constraint(model.tIDX, rule=lambda model, t: sum(model.u[j, t]*b_mag_vec[t,j] for j in range(3)) == 0 if t <= N-1 else pyo.Constraint.Skip)
 
     # Constraints:
 
