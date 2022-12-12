@@ -6,20 +6,20 @@ def check_solver_status(model, results):
         print('========================================================================================')
         print('================ Problem is feasible and the optimal solution is found ==================')
         print('========================================================================================')
-    elif (results.solver.termination_condition == TerminationCondition.infeasible):
-        print('========================================================')
-        print('================ Problem is infeasible ==================')
-        print('========================================================')
-        if (results.solver.termination_condition == TerminationCondition.unbounded):
-            print('================ Problem is unbounded ==================')
-        else:
-            print('================ Problem is bounded ==================')
-
-    else:
-        if (results.solver.termination_condition == TerminationCondition.unbounded):
-            print('================ Problem is unbounded ==================')
-        else:
-            print('================ Problem is bounded ==================')
+    #elif (results.solver.termination_condition == TerminationCondition.infeasible):
+    #    print('========================================================')
+    #    print('================ Problem is infeasible ==================')
+    #    print('========================================================')
+    #    if (results.solver.termination_condition == TerminationCondition.unbounded):
+    #        print('================ Problem is unbounded ==================')
+    #    else:
+    #        print('================ Problem is bounded ==================')
+#
+    #else:
+    #    if (results.solver.termination_condition == TerminationCondition.unbounded):
+    #        print('================ Problem is unbounded ==================')
+    #    else:
+    #        print('================ Problem is bounded ==================')
     return
 
 def model_linearization(x, I_b):

@@ -189,8 +189,8 @@ omega_0 = np.array([1, -0.5, -0.7]).T #
 q_0 = np.array([0,0,1,0]).T
 x0 = np.concatenate((q_0.T, omega_0.T))
 Ts = 0.1
-N=30
-M = 300   # Simulation steps
+N=20
+M = 100   # Simulation steps
 
 Q = np.eye(7)
 R = np.eye(3) #10*np.array([1]).reshape(1,1)
@@ -211,15 +211,15 @@ bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 #A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
 #[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
 
-#plt.plot(x.T)
-#plt.ylabel('x')
-#plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
-#plt.grid()
-#fig = plt.figure(figsize=(9, 6))
-#plt.plot(u.T)
-#plt.ylabel('u')
-#plt.legend(("u1","u2","u3"))
-#plt.grid()
-#plt.show()
+plt.plot(x.T)
+plt.ylabel('x')
+plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
+plt.grid()
+fig = plt.figure(figsize=(9, 6))
+plt.plot(u.T)
+plt.ylabel('u')
+plt.legend(("u1","u2","u3"))
+plt.grid()
+plt.show()
 
-run_animation(x,True)
+run_animation(x,False)

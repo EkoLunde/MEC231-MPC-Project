@@ -83,7 +83,8 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
     model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
 
     # Orthogonality constraint
-    model.orthogonality_mag_const = pyo.Constraint(model.tIDX, rule=lambda model, t: sum(model.u[j, t]*b_mag_vec[t,j] for j in range(3)) == 0 if t <= N-1 else pyo.Constraint.Skip)
+    model.orthogonality_mag_const1 = pyo.Constraint(model.tIDX, rule=lambda model, t: sum(model.u[j, t]*b_mag_vec[t,j] for j in range(3)) == 0 if t <= N-1 else pyo.Constraint.Skip)
+    #model.orthogonality_mag_const2 = pyo.Constraint(model.N, model.tIDX, rule=lambda model, i, t: sum(model.u[k,t]*sum(model.u[j,t]*b_mag_skew[3*i, j] for j in range(3)) for k in range(3)) == 0 if t <= N-1 else pyo.Constraint.Skip)
 
     # Constraints:
 
