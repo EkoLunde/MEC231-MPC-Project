@@ -1,60 +1,10 @@
 import numpy as np
 import pyomo.environ as pyo
+import pyomo.dae as dae
 import matplotlib.pyplot as plt
-from pyquaternion import Quaternion
-
-I_b = (10**6)*np.array([[319, 0, 0],
-               [0, 420, 0],
-               [0, 0, 521]])
-omega_0 = np.array([0.5, -0.5, 0.5]).T # 
-q_0 = np.array([0,0,0,1]).T
-T = 0.1
-N=10
-
-def check_solver_status(model, results):
-    from pyomo.opt import SolverStatus, TerminationCondition
-    if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
-        print('========================================================================================')
-        print('================ Problem is feasible and the optimal solution is found ==================')
-        print('========================================================================================')
-    elif (results.solver.termination_condition == TerminationCondition.infeasible):
-        print('========================================================')
-        print('================ Problem is infeasible ==================')
-        print('========================================================')
-        if (results.solver.termination_condition == TerminationCondition.unbounded):
-            print('================ Problem is unbounded ==================')
-        else:
-            print('================ Problem is bounded ==================')
-
-    else:
-        if (results.solver.termination_condition == TerminationCondition.unbounded):
-            print('================ Problem is unbounded ==================')
-        else:
-            print('================ Problem is unbounded ==================')
-
-    return
-
-def model_linearization(x):
-    A = np.array([[0, x[6]/2, -x[5]/2, x[4]/2, x[3]/2, -x[2]/2, x[1]/2],
-               [-x[6], 0, x[6]/2, x[5]/2, x[2]/2, x[3]/2, -x[0]/2],
-               [x[5]/2, -x[4]/2, 0, x[6]/2, -x[1]/2, x[0]/2, x[3]/2],
-               [-x[4]/2, -x[5]/2, x[6]/2, 0, -x[0]/2, -x[1]/2, x[2]/2],
-               [0, 0, 0, 0, 0, (-1)*(I_b[2][2]-I_b[1][1])*x[6]/I_b[0][0], (-1)*(I_b[2][2]-I_b[1][1])*x[5]/I_b[0][0]],
-               [0, 0, 0, 0, (-1)*(I_b[0][0]-I_b[2][2])*x[6]/I_b[1][1], 0, (-1)*(I_b[0][0]-I_b[2][2])*x[4]/I_b[1][1]],
-               [0, 0, 0, 0, (-1)*(I_b[1][1]-I_b[0][0])*x[5]/I_b[2][2], (-1)*(I_b[1][1]-I_b[0][0])*x[4]/I_b[2][2], 0]])
-    B = np.array([[0, 0, 0],
-                [0, 0, 0],
-                [0, 0, 0],
-                [0, 0, 0],
-                [1/I_b[0][0], 0, 0],
-                [0, 1/I_b[1][1], 0],
-                [0, 0, 1/I_b[2][2]]])
-    C = 0
-    
-    return A, B, C
+from utilities import *
 
 def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
-
     model = pyo.ConcreteModel()
     model.N = N
     model.nx = np.size(A, 0)
@@ -79,18 +29,24 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
 
     # Create state and input variables trajectory:
     model.x = pyo.Var(model.xIDX, model.tIDX)
-    model.u = pyo.Var(model.uIDX, model.tIDX, bounds=(uL,uU))
+    model.u = pyo.Var(model.uIDX, model.tIDX)
+    #model.epsL = pyo.Var(model.xIDX, model.tIDX)
+    #model.epsU = pyo.Var(model.xIDX, model.tIDX, domain=pyo.NonNegativeReals) # Slack variable is introduced 
 
     #Objective:
     def objective_rule(model):
         costX = 0.0
         costU = 0.0
         costTerminal = 0.0
+        #CostSoftPenaltyEpsL = 0.0
+        #CostSoftPenaltyEpsU = 0.0
         for t in model.tIDX:
             for i in model.xIDX:
                 for j in model.xIDX:
                     if t < model.N:
                         costX += model.x[i, t] * model.Q[i, j] * model.x[j, t] #Tror kanskje dette må endres pga quaternions
+                        #CostSoftPenaltyEpsL += model.epsL[i,t] * model.epsL[j,t]
+                        #CostSoftPenaltyEpsU += model.epsU[i,t] * model.epsU[j,t] # penalty on the slack variable
         for t in model.tIDX:
             for i in model.uIDX:
                 for j in model.uIDX:
@@ -99,18 +55,39 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
         for i in model.xIDX:
             for j in model.xIDX:
                 costTerminal += model.x[i, model.N] * model.P[i, j] * model.x[j, model.N]
-        return costX + costU + costTerminal
+        return costX + costU + costTerminal #+ CostSoftPenaltyEpsU + CostSoftPenaltyEpsL
 
     model.cost = pyo.Objective(rule = objective_rule, sense = pyo.minimize)
+    
+    # nonlinear model
+    def cubesat_model(model,i,t):
+        I_b = (10**6)*np.array([[319, 0, 0],
+               [0, 420, 0],
+               [0, 0, 521]])
+        I_b_inv = np.linalg.inv(I_b)
+        Ts = 0.1
+        # Compute the quaternion kinematics equations
+        if (i == 0):
+            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(model.x[1, t]*model.x[6, t] - model.x[2, t]*model.x[5, t] + model.x[3, t]*model.x[4, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
+        elif (i == 1):
+            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(-model.x[0, t]*model.x[6, t] + model.x[2, t]*model.x[4, t] + model.x[3, t]*model.x[5, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
+        elif (i == 2):
+            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(model.x[0, t]*model.x[5, t] - model.x[1, t]*model.x[4, t] + model.x[3, t]*model.x[6, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
+        elif (i == 3):
+            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(-model.x[0, t]*model.x[4, t] - model.x[1, t]*model.x[5, t] - model.x[4, t]*model.x[6, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
+        else:
+            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(I_b_inv[i-4, 0]*(-model.x[6, t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3)))
+                                + I_b_inv[i-4, 1]*(model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) - model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3))) 
+                                + I_b_inv[i-4, 2]*(-model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)))) + model.u[i-4,t]) == 0.0 if t < model.N else pyo.Constraint.Skip
+    model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
+
 
     # Constraints:
-    def equality_const_rule(model, i, t):
-        return model.x[i, t+1] - (sum(model.A[i, j] * model.x[j, t] for j in model.xIDX)
-                               +  sum(model.B[i, j] * model.u[j, t] for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
 
-
-    model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=equality_const_rule)
-
+    #def equality_const_rule(model, i, t):
+    #    return model.x[i, t+1] - (sum(model.A[i, j] * model.x[j, t] for j in model.xIDX)
+    #                           +  sum(model.B[i, j] * model.u[j, t] for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
+    #model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=equality_const_rule)
 
     model.init_const1 = pyo.Constraint(expr = model.x[0, 0] == x0[0])
     model.init_const2 = pyo.Constraint(expr = model.x[1, 0] == x0[1])
@@ -120,22 +97,31 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     model.init_const6 = pyo.Constraint(expr = model.x[5, 0] == x0[5])
     model.init_const7 = pyo.Constraint(expr = model.x[6, 0] == x0[6])
 
-    #model.const1 = pyo.Constraint(expr = (pyo.sqrt(model.x[0, 0]*model.x[0, 0] + model.x[1, 0]*model.x[1, 0] + model.x[2, 0]*model.x[2, 0] + model.x[3, 0]*model.x[3, 0]) == 1)) #unit quaternion
+    #model.max_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.x[i, t] <= xU[i] if t <= N-1 else pyo.Constraint.Skip)
+    #model.min_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: xL[i] <=  model.x[i, t] if t <= N-1 else pyo.Constraint.Skip)
+    model.max_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: model.u[i, t] <= uU[i] if t <= N-1 else pyo.Constraint.Skip)
+    model.min_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: uL[i] <=  model.u[i, t] if t <= N-1 else pyo.Constraint.Skip)
+    #model.epsU = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.epsL[i,t] >= 0)
 
+    model.unit_quat_const = pyo.Constraint(model.tIDX, rule=lambda model, t: (model.x[0, t]**2 + model.x[1, t]**2 + model.x[2, t]**2 + model.x[3, t]**2) == 1 if t <= N-1 else pyo.Constraint.Skip)
+    
     def final_const_rule(model, i):
-        return sum(model.Af[i, j] * model.x[j, model.N] for j in model.xIDX) <= model.bf[i]
-
+        return sum(model.Af[i, j]*model.x[j, model.N] for j in model.xIDX) <= model.bf[i] 
     model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
 
-    solver = pyo.SolverFactory('ipopt')
-    results = solver.solve(model)
+    #solver = pyo.SolverFactory('ipopt')
+    #results = solver.solve(model, mip_solver='glpk', nlp_solver='ipopt')
 
-    check_solver_status(model, results)
+    #check_solver_status(model, results)
+    #if str(results.solver.termination_condition) == "optimal":
+    #    feas = True
+    #else:
+    #    feas = False
 
-    if str(results.solver.termination_condition) == "optimal":
-        feas = True
-    else:
-        feas = False
+    results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt', tee=True)
+    model.display()
+    model.pprint()
+    feas=True
 
     xOpt = np.asarray([[model.x[i,t]() for i in model.xIDX] for t in model.tIDX]).T
     uOpt = np.asarray([model.u[:,t]() for t in model.tIDX]).T
@@ -143,86 +129,3 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     JOpt = model.cost()
 
     return [model, feas, xOpt, uOpt, JOpt]
-
-
-def model_sim():
-
-
-    Xf = O_inf
-    Af = Xf.A
-    bf = Xf.b
-
-    Q = np.eye(7)
-    R = np.eye(3) #10*np.array([1]).reshape(1,1)
-    P = Q
-    N = 3
-    xL = -10.0
-    xU = 10.0
-    uL = -1.0
-    uU = 1.0
-    x0 = np.array([0.5, -0.5, 0.5, 0,0,0,1]).T
-
-    A, B, C = model_linearization(x0)
-
-    nx = np.size(A, 0)
-    nu = np.size(B, 1)
-
-    M = 25   # Simulation steps
-    xOpt = np.zeros((nx, M+1))
-    uOpt = np.zeros((nu, M))
-    xOpt[:, 0] = x0.reshape(nx, )
-
-    xPred = np.zeros((nx, N+1, M))
-    predErr = np.zeros((nx, M-N+1))
-
-    feas = np.zeros((M, ), dtype=bool)
-    xN = np.zeros((nx,1))
-
-    fig = plt.figure(figsize=(9, 6))
-    for t in range(M):
-        [model, feas[t], x, u, J] = solve_cftoc(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af)
-
-        if not feas[t]:
-            xOpt = []
-            uOpt = []
-            predErr = []
-            break
-        # Save open loop predictions
-        xPred[:, :, t] = x
-
-        # Save closed loop trajectory
-        # Note that the second column of x represents the optimal closed loop state
-        xOpt[:, t+1] = x[:, 1]
-        uOpt[:, t] = u[:, 0].reshape(nu, )
-        A, B, C = model_linearization(x[:, 1])
-
-    return
-
-
-Af = np.eye(7)
-bf = np.array([-1, 0, 0, 0, 0, 0, 0]).T
-
-Q = np.eye(7)
-R = np.eye(3) #10*np.array([1]).reshape(1,1)
-P = Q
-N = 30
-xL = -10.0
-xU = 10.0
-uL = -1.0
-uU = 1.0
-x0 = np.array([1,0,0,1, 0.5, -0.5, 0.5]).T
-
-A, B, C = model_linearization(x0)
-
-[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
-
-plt.plot(x.T)
-plt.ylabel('x')
-plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
-plt.grid()
-fig = plt.figure(figsize=(9, 6))
-plt.plot(u.T)
-plt.ylabel('u')
-plt.legend(("u1","u2","u3"))
-plt.grid()
-plt.show()

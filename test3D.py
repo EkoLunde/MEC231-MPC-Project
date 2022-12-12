@@ -27,8 +27,11 @@ def generate_quaternion2():
             yield q
         q1, q2 = q2, q1
 
+def generate_quaternion_from_array(q_array):
+    while True:
+        for q in q_array:
+            yield q
         
-
 
 quaternion_generator = generate_quaternion2()
 
