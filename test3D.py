@@ -27,15 +27,32 @@ def generate_quaternion2():
             yield q
         q1, q2 = q2, q1
 
-def generate_quaternion_from_array(x_array):
-
+def generate_quaternion_from_array(x_array, stay_in_final=False):
+    stay = stay_in_final
+    i_array = [1/50 for i in range(1,51)]
     q_array = [Quaternion(x_array[0,i], x_array[1,i], x_array[2,i],x_array[4,i]) for i in range(x_array.shape[1])]
+    for q in q_array:
+                yield q
     while True:
-        for q in q_array:
-            yield q
+        if not stay:
+            for q in q_array:
+                yield q
+        else:
+            print("\nHello\n")
+            q1=q_array[-1]
+            print("\nHow\n")
+            q_dot = q1.derivative([x_array[4,-1], x_array[5,-1], x_array[6,-1]])
+            print(q_dot)
+            print("\nAre\n")
+            for i in i_array:
+                q1 = q1.integrate(q_dot, 0.25) # This does not quite work, at least not with zero speed
+                print("\nYou\n")
+                print(q1)
+                yield q1
         
-def run_animation(xOpt):
-    quaternion_generator = generate_quaternion_from_array(xOpt)
+        
+def run_animation(xOpt, stay_in_final=False):
+    quaternion_generator = generate_quaternion_from_array(xOpt, stay_in_final)
 
     # Set up figure & 3D axis for animation
     fig = plt.figure()

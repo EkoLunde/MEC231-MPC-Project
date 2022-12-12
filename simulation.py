@@ -185,7 +185,7 @@ uL = np.array([-0.1, -0.1, -0.1]).T
 uU = np.array([0.1, 0.1, 0.1]).T
 
 Af = np.eye(7)
-bf = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).T
+bf = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]).T
 
 #[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
 
@@ -206,4 +206,4 @@ A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)
 #plt.grid()
 #plt.show()
 
-run_animation(x)
+run_animation(x,True)
