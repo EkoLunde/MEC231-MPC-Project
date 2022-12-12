@@ -6,6 +6,7 @@ from utilities import *
 import pyomo.environ as pyo
 import matplotlib.pyplot as plt
 from model import *
+import pyIGRF
 from test3D import *
 
 def dlqr(A, B, Q, R):
@@ -109,7 +110,6 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
     system = (A_c, B_c, C_c, D_c)
     A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)     
 
-
     # Finf, Pinf, eigVals, eigVecs = dlqr(A, B, Q, R)
 
     # # Create some stability check using eig !!
@@ -138,12 +138,28 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
 
     xPred = np.zeros((nx, N+1, M))
     predErr = np.zeros((nx, M-N+1))
+    b_mag_skew = np.zeros((nx-4, nx-4, N+1))
 
     feas = np.zeros((M, ), dtype=bool)
     xN = np.zeros((nx,1))
 
     for t in range(M):
-        [model, feas[t], x, u, J] = solve_cftoc(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af)
+        #IGRF
+        lat = 40
+        lon = 116
+        alt = 300
+
+        b_mag_skew = np.empty((0,3), float)
+        b_mag_vec = np.empty((0,3), float)
+        for k in range(N+1):    
+            date = 2022+(t+k)*Ts/3.154e+7
+            b_mag = pyIGRF.igrf_value(lat, lon, alt, date)[2:5]
+            b_mag_vec = np.append(b_mag_vec, [[1e-9*b_mag[0], 1e-9*b_mag[1], 1e-9*b_mag[2]]], axis=0)
+            b_mag_skew = np.append(b_mag_skew, [[0, 1e-9*b_mag[2], -1e-9*b_mag[1]],
+                                          [-1e-9*b_mag[2], 0, 1e-9*b_mag[0]],
+                                          [1e-9*b_mag[1], -1e-9*b_mag[0], 0]], axis=0)
+
+        [model, feas[t], x, u, J] = solve_cftoc(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af,b_mag_vec, b_mag_skew)
 
         if not feas[t]:
             #xOpt = []
@@ -169,31 +185,31 @@ I_b = (10**6)*np.array([[319, 0, 0],
                [0, 0, 521]])
 I_b_inv = np.linalg.inv(I_b)
 
-omega_0 = np.array([0.5, -0.5, 0.5]).T #
-q_0 = np.array([1,0,0,0]).T
+omega_0 = np.array([1, -0.5, -0.7]).T #
+q_0 = np.array([0,0,1,0]).T
 x0 = np.concatenate((q_0.T, omega_0.T))
 Ts = 0.1
-N=50
-M = 40   # Simulation steps
+N=30
+M = 300   # Simulation steps
 
 Q = np.eye(7)
 R = np.eye(3) #10*np.array([1]).reshape(1,1)
 P = Q
 xL = np.array([-1.0, -1.0, -1.0, -1.0, -5.0, -5.0, -5.0]).T
 xU = np.array([1.0, 1.0, 1.0, 1.0, 5.0, 5.0, 5.0]).T
-uL = np.array([-0.1, -0.1, -0.1]).T
-uU = np.array([0.1, 0.1, 0.1]).T
+uL = np.array([-0.3, -0.3, -0.3]).T
+uU = np.array([0.3, 0.3, 0.3]).T
 
 Af = np.eye(7)
-bf = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]).T
+bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 
-#[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
 
-A_c, B_c, C_c = model_linearization(x0, I_b)
-D_c = np.array(np.zeros((3,1)))
-system = (A_c, B_c, C_c, D_c)
-A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
-[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
+#A_c, B_c, C_c = model_linearization(x0, I_b)
+#D_c = np.array(np.zeros((3,1)))
+#system = (A_c, B_c, C_c, D_c)
+#A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
+#[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
 
 #plt.plot(x.T)
 #plt.ylabel('x')
