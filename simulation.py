@@ -6,6 +6,7 @@ from utilities import *
 import pyomo.environ as pyo
 import matplotlib.pyplot as plt
 from model import *
+from test3D import *
 
 def dlqr(A, B, Q, R):
     # solve Discrete Algebraic Riccatti equation  
@@ -194,13 +195,15 @@ system = (A_c, B_c, C_c, D_c)
 A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
 [model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
 
-plt.plot(x.T)
-plt.ylabel('x')
-plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
-plt.grid()
-fig = plt.figure(figsize=(9, 6))
-plt.plot(u.T)
-plt.ylabel('u')
-plt.legend(("u1","u2","u3"))
-plt.grid()
-plt.show()
+#plt.plot(x.T)
+#plt.ylabel('x')
+#plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
+#plt.grid()
+#fig = plt.figure(figsize=(9, 6))
+#plt.plot(u.T)
+#plt.ylabel('u')
+#plt.legend(("u1","u2","u3"))
+#plt.grid()
+#plt.show()
+
+run_animation(x)
