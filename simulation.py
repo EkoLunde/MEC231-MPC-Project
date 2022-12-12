@@ -7,6 +7,7 @@ import pyomo.environ as pyo
 import matplotlib.pyplot as plt
 from model import *
 import pyIGRF
+from test3D import *
 
 def dlqr(A, B, Q, R):
     # solve Discrete Algebraic Riccatti equation  
@@ -105,7 +106,7 @@ def create_polytope_x_and_u(xU,xL,uU,uL):
     
 def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
     A_c, B_c, C_c = model_linearization(x0, I_b)
-    D_c = np.array(np.zeros((3,1)))
+    D_c = np.array(np.zeros((1,3)))
     system = (A_c, B_c, C_c, D_c)
     A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)     
 
@@ -210,13 +211,15 @@ bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 #A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
 #[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
 
-plt.plot(x.T)
-plt.ylabel('x')
-plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
-plt.grid()
-fig = plt.figure(figsize=(9, 6))
-plt.plot(u.T)
-plt.ylabel('u')
-plt.legend(("u1","u2","u3"))
-plt.grid()
-plt.show()
+#plt.plot(x.T)
+#plt.ylabel('x')
+#plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
+#plt.grid()
+#fig = plt.figure(figsize=(9, 6))
+#plt.plot(u.T)
+#plt.ylabel('u')
+#plt.legend(("u1","u2","u3"))
+#plt.grid()
+#plt.show()
+
+run_animation(x,True)
