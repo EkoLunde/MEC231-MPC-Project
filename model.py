@@ -66,6 +66,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
                [0, 0, 521]])
         I_b_inv = np.linalg.inv(I_b)
         Ts = 0.1
+        # quaternions
         if (i == 0):
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(model.x[1, t]*model.x[6, t] - model.x[2, t]*model.x[5, t] + model.x[3, t]*model.x[4, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
         elif (i == 1):
@@ -74,6 +75,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(model.x[0, t]*model.x[5, t] - model.x[1, t]*model.x[4, t] + model.x[3, t]*model.x[6, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
         elif (i == 3):
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(-model.x[0, t]*model.x[4, t] - model.x[1, t]*model.x[5, t] - model.x[4, t]*model.x[6, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
+        # angular velocity
         else:
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(I_b_inv[i-4, 0]*(-model.x[6, t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3)))
                                 + I_b_inv[i-4, 1]*(model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) - model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3))) 

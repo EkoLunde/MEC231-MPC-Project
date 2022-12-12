@@ -6,6 +6,7 @@ from utilities import *
 import pyomo.environ as pyo
 import matplotlib.pyplot as plt
 from model import *
+import pyIGRF
 
 def dlqr(A, B, Q, R):
     # solve Discrete Algebraic Riccatti equation  
@@ -108,6 +109,13 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
     system = (A_c, B_c, C_c, D_c)
     A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)     
 
+    #IGRF
+    lat = 40
+    lon = 116
+    alt = 300
+    date = 2022+Ts/3.154e+7
+    mag = pyIGRF.igrf_value(lat, lon, alt, date)
+    print(mag)
 
     # Finf, Pinf, eigVals, eigVecs = dlqr(A, B, Q, R)
 
