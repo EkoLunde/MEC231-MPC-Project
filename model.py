@@ -66,7 +66,6 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
                [0, 0, 521]])
         I_b_inv = np.linalg.inv(I_b)
         Ts = 0.1
-        # Compute the quaternion kinematics equations
         if (i == 0):
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(model.x[1, t]*model.x[6, t] - model.x[2, t]*model.x[5, t] + model.x[3, t]*model.x[4, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
         elif (i == 1):
@@ -84,6 +83,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
 
     # Constraints:
 
+    ##Linearized constraints
     #def equality_const_rule(model, i, t):
     #    return model.x[i, t+1] - (sum(model.A[i, j] * model.x[j, t] for j in model.xIDX)
     #                           +  sum(model.B[i, j] * model.u[j, t] for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
@@ -105,23 +105,30 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
 
     model.unit_quat_const = pyo.Constraint(model.tIDX, rule=lambda model, t: (model.x[0, t]**2 + model.x[1, t]**2 + model.x[2, t]**2 + model.x[3, t]**2) == 1 if t <= N-1 else pyo.Constraint.Skip)
     
-    def final_const_rule(model, i):
-        return sum(model.Af[i, j]*model.x[j, model.N] for j in model.xIDX) <= model.bf[i] 
-    model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
+    #def final_const_rule(model, i):
+    #    return sum(model.Af[i, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[i] 
+    #model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
 
-    #solver = pyo.SolverFactory('ipopt')
-    #results = solver.solve(model, mip_solver='glpk', nlp_solver='ipopt')
+    #model.final_const1 = pyo.Constraint(expr = sum(model.Af[0, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[0])
+    model.final_const2 = pyo.Constraint(expr = sum(model.Af[1, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[1])
+    model.final_const3 = pyo.Constraint(expr = sum(model.Af[2, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[2])
+    #model.final_const4 = pyo.Constraint(expr = sum(model.Af[3, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[3])
+    #model.final_const5 = pyo.Constraint(expr = sum(model.Af[4, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[4])
+    #model.final_const6 = pyo.Constraint(expr = sum(model.Af[5, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[5])
+    #model.final_const7 = pyo.Constraint(expr = sum(model.Af[6, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[6])
 
-    #check_solver_status(model, results)
-    #if str(results.solver.termination_condition) == "optimal":
-    #    feas = True
-    #else:
-    #    feas = False
+    solver = pyo.SolverFactory('ipopt')
+    results = solver.solve(model)
+    check_solver_status(model, results)
+    if str(results.solver.termination_condition) == "optimal":
+        feas = True
+    else:
+        feas = False
 
-    results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt', tee=True)
-    model.display()
-    model.pprint()
-    feas=True
+    #results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt')#, tee=True)
+    #model.display()
+    #model.pprint()
+    #feas=True
 
     xOpt = np.asarray([[model.x[i,t]() for i in model.xIDX] for t in model.tIDX]).T
     uOpt = np.asarray([model.u[:,t]() for t in model.tIDX]).T

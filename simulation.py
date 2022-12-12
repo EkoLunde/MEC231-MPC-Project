@@ -168,12 +168,12 @@ I_b = (10**6)*np.array([[319, 0, 0],
                [0, 0, 521]])
 I_b_inv = np.linalg.inv(I_b)
 
-omega_0 = np.array([0.5, -0.5, 0.5]).T #
-q_0 = np.array([1,0,0,0]).T
+omega_0 = np.array([1, -0.5, -0.7]).T #
+q_0 = np.array([0,0,1,0]).T
 x0 = np.concatenate((q_0.T, omega_0.T))
 Ts = 0.1
-N=50
-M = 40   # Simulation steps
+N=12
+M = 50   # Simulation steps
 
 Q = np.eye(7)
 R = np.eye(3) #10*np.array([1]).reshape(1,1)
@@ -184,15 +184,15 @@ uL = np.array([-0.1, -0.1, -0.1]).T
 uU = np.array([0.1, 0.1, 0.1]).T
 
 Af = np.eye(7)
-bf = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).T
+bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 
-#[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
 
-A_c, B_c, C_c = model_linearization(x0, I_b)
-D_c = np.array(np.zeros((3,1)))
-system = (A_c, B_c, C_c, D_c)
-A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
-[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
+#A_c, B_c, C_c = model_linearization(x0, I_b)
+#D_c = np.array(np.zeros((3,1)))
+#system = (A_c, B_c, C_c, D_c)
+#A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
+#[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
 
 plt.plot(x.T)
 plt.ylabel('x')
