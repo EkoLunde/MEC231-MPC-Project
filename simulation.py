@@ -104,7 +104,7 @@ def create_polytope_x_and_u(xU,xL,uU,uL):
                           [uL[2]]])) 
     return X, U
     
-def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
+def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts, I_h):
     A_c, B_c, C_c = model_linearization(x0, I_b)
     D_c = np.array(np.zeros((1,3)))
     system = (A_c, B_c, C_c, D_c)
@@ -159,7 +159,7 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
                                           [-1e-9*b_mag[2], 0, 1e-9*b_mag[0]],
                                           [1e-9*b_mag[1], -1e-9*b_mag[0], 0]], axis=0)
 
-        [model, feas[t], x, u, J] = solve_cftoc(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af,b_mag_vec, b_mag_skew)
+        [model, feas[t], x, u, J] = solve_cftoc(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af,b_mag_vec, b_mag_skew, Ts, I_b)
 
         if not feas[t]:
             #xOpt = []
@@ -193,9 +193,9 @@ N=20
 M = 100   # Simulation steps
 
 Q = np.array([[0, 0, 0, 0, 0, 0, 0],
+              [0, 1, 0, 0, 0, 0, 0],
+              [0, 0, 1, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 1, 0, 0, 0],
               [0, 0, 0, 0, 1, 0, 0],
               [0, 0, 0, 0, 0, 1, 0],
               [0, 0, 0, 0, 0, 0, 1]])
@@ -203,13 +203,13 @@ R = np.eye(3) #10*np.array([1]).reshape(1,1)
 P = Q
 xL = np.array([-1.0, -1.0, -1.0, -1.0, -5.0, -5.0, -5.0]).T
 xU = np.array([1.0, 1.0, 1.0, 1.0, 5.0, 5.0, 5.0]).T
-uL = np.array([-0.3, -0.3, -0.3]).T
-uU = np.array([0.3, 0.3, 0.3]).T
+uL = np.array([-0.8, -0.8, -0.8]).T
+uU = np.array([0.8, 0.8, 0.8]).T
 
 Af = np.eye(7)
 bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 
-[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts, I_b)
 
 #A_c, B_c, C_c = model_linearization(x0, I_b)
 #D_c = np.array(np.zeros((3,1)))
