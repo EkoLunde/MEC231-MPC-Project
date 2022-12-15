@@ -118,6 +118,6 @@ def run_animation(xOpt, stay_in_final=False):
 
     # Save as mp4. This requires mplayer or ffmpeg to be installed
     #anim.save('lorentz_attractor.mp4', fps=15, extra_args=['-vcodec', 'libx264'])
-
+    plt.legend("x","y","z")
     plt.show()
     return 

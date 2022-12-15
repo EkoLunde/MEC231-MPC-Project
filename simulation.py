@@ -222,4 +222,4 @@ bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
 #plt.grid()
 #plt.show()
 
-run_animation(x,True)
+run_animation(x,False)
