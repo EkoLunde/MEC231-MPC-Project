@@ -1,7 +1,7 @@
 import numpy as np
 import pyomo.environ as pyo
-import pyomo.dae as dae
-import matplotlib.pyplot as plt
+#import pyomo.dae as dae
+#import matplotlib.pyplot as plt
 from utilities import *
 
 def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_skew):
@@ -56,7 +56,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
             for j in model.xIDX:
                 costTerminal += model.x[i, model.N] * model.P[i, j] * model.x[j, model.N]
         return costX + costU + costTerminal #+ CostSoftPenaltyEpsU + CostSoftPenaltyEpsL
-    model.cost = pyo.Objective(rule = objective_rule_euler, sense = pyo.minimize)
+    model.cost = pyo.Objective(rule = objective_rule, sense = pyo.minimize)
     
     # nonlinear model
     def cubesat_model(model,i,t):
@@ -99,7 +99,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
     model.init_const5 = pyo.Constraint(expr = model.x[4, 0] == x0[4])
     model.init_const6 = pyo.Constraint(expr = model.x[5, 0] == x0[5])
     model.init_const7 = pyo.Constraint(expr = model.x[6, 0] == x0[6])
-    model.cost = pyo.Objective(rule = objective_rule_euler, sense = pyo.minimize)
+
     #model.max_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.x[i, t] <= xU[i] if t <= N-1 else pyo.Constraint.Skip)
     #model.min_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: xL[i] <=  model.x[i, t] if t <= N-1 else pyo.Constraint.Skip)
     model.max_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: model.u[i, t] <= uU[i] if t <= N-1 else pyo.Constraint.Skip)
@@ -139,3 +139,106 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
     JOpt = model.cost()
 
     return [model, feas, xOpt, uOpt, JOpt]
+
+def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
+    model = pyo.ConcreteModel()
+    model.name = "Linear Satellite Dynamics Model"
+    model.N = N
+    model.nx = np.size(A, 0)
+    model.nu = np.size(B, 1)
+    model.nf = np.size(Af, 0)
+
+    # length of finite optimization problem:
+    model.tIDX = pyo.Set( initialize= range(model.N+1), ordered=True )
+    model.xIDX = pyo.Set( initialize= range(model.nx), ordered=True )
+    model.uIDX = pyo.Set( initialize= range(model.nu), ordered=True )
+
+    model.nfIDX = pyo.Set( initialize= range(model.nf), ordered=True )
+
+    # these are 2d arrays:
+    model.A = A
+    model.B = B
+    model.Q = Q
+    model.P = P
+    model.R = R
+    model.Af = Af
+    model.bf = bf
+
+    # Create state and input variables trajectory:
+    model.x = pyo.Var(model.xIDX, model.tIDX)
+    model.u = pyo.Var(model.uIDX, model.tIDX)
+    model.epsL = pyo.Var(model.xIDX, model.tIDX, domain=pyo.NonNegativeReals)
+    model.epsU = pyo.Var(model.xIDX, model.tIDX, domain=pyo.NonNegativeReals) # Slack variable is introduced 
+
+    #Objective:
+    def objective_rule(model):
+        costX = 0.0
+        costU = 0.0
+        costTerminal = 0.0
+        CostSoftPenaltyEpsL = 0.0
+        CostSoftPenaltyEpsU = 0.0
+        for t in model.tIDX:
+            for i in model.xIDX:
+                for j in model.xIDX:
+                    if t < model.N:
+                        costX += model.x[i, t] * model.Q[i, j] * model.x[j, t]
+                        CostSoftPenaltyEpsL += model.epsL[i,t] * model.epsL[j,t]
+                        CostSoftPenaltyEpsU += model.epsU[i,t] * model.epsU[j,t]
+
+        for t in model.tIDX:
+            for i in model.uIDX:
+                for j in model.uIDX:
+                    if t < model.N:
+                        costU += model.u[i, t] * model.R[i, j] * model.u[j, t]
+
+        for i in model.xIDX:
+            for j in model.xIDX:
+                costTerminal += model.x[i, model.N] * model.P[i, j] * model.x[j, model.N]
+
+        return costX + costU + costTerminal + CostSoftPenaltyEpsL + CostSoftPenaltyEpsU
+
+    model.cost = pyo.Objective(rule = objective_rule, sense = pyo.minimize)
+    
+    # Linear model
+    def cubesat_model(model,i,t):
+        return model.x[i, t+1] - (sum(model.A[i, j] * model.x[j, t] for j in model.xIDX)
+                               +  sum(model.B[i, j] * model.u[j, t] for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
+    model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
+    
+    # Initial Constraints:
+    model.init_const = pyo.Constraint(model.xIDX, rule=lambda model, i: model.x[i, 0] == x0[i])
+
+    # Input Constraints:
+    model.input_const1 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: model.u[i, t] <= uU[i] if t <= N-1 else pyo.Constraint.Skip)
+    model.input_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: uL[i] <= model.u[i, t] if t <= N-1 else pyo.Constraint.Skip)
+    
+    # State Constraint
+    #model.unit_quat_const = pyo.Constraint(model.tIDX, rule=lambda model, t: (model.x[0, t]**2 + model.x[1, t]**2 + model.x[2, t]**2 + model.x[3, t]**2) == 1 if t <= N-1 else pyo.Constraint.Skip)
+    model.state_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.x[i, t] <= xU[i] + model.epsU[i,t] if t <= N-1 else pyo.Constraint.Skip)
+    model.state_const2 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: xL[i]-model.epsL[i,t] <= model.x[i, t] if t <= N-1 else pyo.Constraint.Skip)
+    
+    def final_const_rule(model, i):
+        return sum(model.Af[i, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[i] 
+    #model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
+
+    # Solve
+    solver = pyo.SolverFactory('ipopt')
+    results = solver.solve(model)
+    check_solver_status(model, results)
+    if str(results.solver.termination_condition) == "optimal":
+        feas = True
+    else:
+        feas = False
+
+    #results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt')#, tee=True)
+    #model.display()
+    #model.pprint()
+    #feas=True
+
+    xOpt = np.asarray([[model.x[i,t]() for i in model.xIDX] for t in model.tIDX]).T
+    uOpt = np.asarray([model.u[:,t]() for t in model.tIDX]).T
+
+    JOpt = model.cost()
+
+    return [model, feas, xOpt, uOpt, JOpt]
+

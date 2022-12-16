@@ -1,12 +1,12 @@
 import numpy as np
-import scipy.signal
+#import scipy.signal
 import scipy.linalg
 import polytope as pt
 from utilities import *
-import pyomo.environ as pyo
-import matplotlib.pyplot as plt
+#import pyomo.environ as pyo
+#import matplotlib.pyplot as plt
 from model import *
-import pyIGRF
+#import pyIGRF
 from test3D import *
 
 def dlqr(A, B, Q, R):
@@ -180,46 +180,107 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
 
     return [model, feas, xOpt, uOpt]
 
-I_b = (10**6)*np.array([[319, 0, 0],
-               [0, 420, 0],
-               [0, 0, 521]])
-I_b_inv = np.linalg.inv(I_b)
+def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
 
-omega_0 = np.array([1, -0.5, -0.7]).T #
-q_0 = np.array([0,0,1,0]).T
-x0 = np.concatenate((q_0.T, omega_0.T)).T
-Ts = 0.1
-N=30
-M = 300   # Simulation steps
+    nx = np.size(Q, 0)
+    nu = np.size(R, 1)
+    
+    xOpt = np.zeros((nx, M+1))
+    uOpt = np.zeros((nu, M))
+    xOpt[:, 0] = x0.reshape(nx, )
 
-Q = np.eye(7)
-R = np.eye(3) #10*np.array([1]).reshape(1,1)
-P = Q
-xL = np.array([-1.0, -1.0, -1.0, -1.0, -5.0, -5.0, -5.0]).T
-xU = np.array([1.0, 1.0, 1.0, 1.0, 5.0, 5.0, 5.0]).T
-uL = np.array([-0.3, -0.3, -0.3]).T
-uU = np.array([0.3, 0.3, 0.3]).T
+    xPred = np.zeros((nx, N+1, M))
+    feas = np.zeros((M, ), dtype=bool)
 
-Af = np.eye(7)
-bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
+    for t in range(M):
+        A_c, B_c = model_linearization(xOpt[:,t], I_b)
+        A = np.eye(nx)+Ts*A_c
+        B = Ts*B_c
 
-[model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+        [model, feas[t], x, u, J] = solve_cftoc_linear(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af)
+
+        if not feas[t]:
+            xOpt = []
+            uOpt = []
+            predErr = []
+            print("infeasable at time ", t)
+            break
+        # Save open loop predictions
+        xPred[:, :, t] = x
+
+        # Save closed loop trajectory
+        # Note that the second column of x represents the optimal closed loop state
+        xOpt[:, t+1] = x[:, 1]
+        uOpt[:, t] = u[:, 0].reshape(nu, ) 
+
+    return [model, feas, xOpt, uOpt]
+
+def run_linear_mpc():
+    I_b = (10**6)*np.array([[319,   0,   0],
+                            [  0, 420,   0],
+                            [  0,   0, 521]])
+    omega_0 = np.array([1, -0.5, -0.7]).T
+    q_0 = np.array([0,0,1,0]).T
+    x0 = np.concatenate((q_0.T, omega_0.T))
+    Ts = 0.1
+    N=30
+    M = 100   # Simulation steps
+
+    Q = np.eye(7)
+    R = np.eye(3) #10*np.array([1]).reshape(1,1)
+    P = Q
+    xL = np.array([-1.0, -1.0, -1.0, -1.0, -100.0, -100.0, -100.0]).T
+    xU = np.array([1.0, 1.0, 1.0, 1.0, 100.0, 100.0, 100.0]).T
+    uL = np.array([-0.3, -0.3, -0.3]).T
+    uU = np.array([0.3, 0.3, 0.3]).T
+
+    Af = np.eye(7)
+    bf = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).T
+
+    return mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+
+# I_b = (10**6)*np.array([[319,   0,   0],
+#                         [  0, 420,   0],
+#                         [  0,   0, 521]])
+# I_b_inv = np.linalg.inv(I_b)
+
+# omega_0 = np.array([1, -0.5, -0.7]).T
+# q_0 = np.array([0,0,1,0]).T
+# x0 = np.concatenate((q_0.T, omega_0.T)).T
+# Ts = 0.1
+# N=30
+# M = 300   # Simulation steps
+
+# Q = np.eye(7)
+# R = np.eye(3) #10*np.array([1]).reshape(1,1)
+# P = Q
+# xL = np.array([-1.0, -1.0, -1.0, -1.0, -5.0, -5.0, -5.0]).T
+# xU = np.array([1.0, 1.0, 1.0, 1.0, 5.0, 5.0, 5.0]).T
+# uL = np.array([-0.3, -0.3, -0.3]).T
+# uU = np.array([0.3, 0.3, 0.3]).T
+
+# Af = np.eye(7)
+# bf = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]).T
+
+# [model, feas, x, u] = mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
 
 #A_c, B_c, C_c = model_linearization(x0, I_b)
 #D_c = np.array(np.zeros((3,1)))
 #system = (A_c, B_c, C_c, D_c)
 #A, B, C, D, dt = scipy.signal.cont2discrete(system, Ts)  
 #[model, feas, x, u, J] = solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af)
+[model, feas, x, u] = run_linear_mpc()
+plt.plot(x.T)
+plt.ylabel('x')
+plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
+plt.grid()
+fig = plt.figure(figsize=(9, 6))
+plt.plot(u.T)
+plt.ylabel('u')
+plt.legend(("u1","u2","u3"))
+plt.grid()
+plt.show()
 
-#plt.plot(x.T)
-#plt.ylabel('x')
-#plt.legend((r'$\eta$',r'$q_1$',r'$q_2$',r'$q_3$',r'$\omega_1$',r'$\omega_2$',r'$\omega_3$'),)
-#plt.grid()
-#fig = plt.figure(figsize=(9, 6))
-#plt.plot(u.T)
-#plt.ylabel('u')
-#plt.legend(("u1","u2","u3"))
-#plt.grid()
-#plt.show()
-
-run_animation(x,False)
+print("x is ", x)
+print("\nu is ", u)
+#run_animation(x,False)
