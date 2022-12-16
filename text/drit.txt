@@ -1,0 +1,165 @@
+13 Set Declarations
+    epsL_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+    epsU_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+    equality_constraints_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+    input_const1_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : uIDX*tIDX :    6 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)}
+    input_const2_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : uIDX*tIDX :    6 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)}
+    nfIDX : Size=1, Index=None, Ordered=Insertion
+        Key  : Dimen : Domain : Size : Members
+        None :     1 :    Any :    7 : {0, 1, 2, 3, 4, 5, 6}
+    state_const1_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+    state_const2_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+    tIDX : Size=1, Index=None, Ordered=Insertion
+        Key  : Dimen : Domain : Size : Members
+        None :     1 :    Any :    2 : {0, 1}
+    uIDX : Size=1, Index=None, Ordered=Insertion
+        Key  : Dimen : Domain : Size : Members
+        None :     1 :    Any :    3 : {0, 1, 2}
+    u_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : uIDX*tIDX :    6 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)}
+    xIDX : Size=1, Index=None, Ordered=Insertion
+        Key  : Dimen : Domain : Size : Members
+        None :     1 :    Any :    7 : {0, 1, 2, 3, 4, 5, 6}
+    x_index : Size=1, Index=None, Ordered=True
+        Key  : Dimen : Domain    : Size : Members
+        None :     2 : xIDX*tIDX :   14 : {(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1)}
+
+4 Var Declarations
+    epsL : Size=14, Index=epsL_index
+        Key    : Lower : Value                : Upper : Fixed : Stale : Domain
+        (0, 0) :     0 : 0.021662553708761096 :  None : False : False : NonNegativeReals
+        (0, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (1, 0) :     0 :   0.0219123360311745 :  None : False : False : NonNegativeReals
+        (1, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (2, 0) :     0 :   0.0219123360311745 :  None : False : False : NonNegativeReals
+        (2, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (3, 0) :     0 : 0.021725811066154305 :  None : False : False : NonNegativeReals
+        (3, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (4, 0) :     0 : 0.021469214975062507 :  None : False : False : NonNegativeReals
+        (4, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (5, 0) :     0 : 0.021469214975062507 :  None : False : False : NonNegativeReals
+        (5, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+        (6, 0) :     0 : 0.021469214975062507 :  None : False : False : NonNegativeReals
+        (6, 1) :     0 :                 None :  None : False :  True : NonNegativeReals
+    epsU : Size=14, Index=epsU_index
+        Key    : Lower : Value               : Upper : Fixed : Stale : Domain
+        (0, 0) :     0 :  0.0236676027526777 :  None : False : False : NonNegativeReals
+        (0, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (1, 0) :     0 : 0.02180255573173621 :  None : False : False : NonNegativeReals
+        (1, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (2, 0) :     0 : 0.02180255573173621 :  None : False : False : NonNegativeReals
+        (2, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (3, 0) :     0 : 0.02225459791158004 :  None : False : False : NonNegativeReals
+        (3, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (4, 0) :     0 : 0.02136162913488141 :  None : False : False : NonNegativeReals
+        (4, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (5, 0) :     0 : 0.02136162913488141 :  None : False : False : NonNegativeReals
+        (5, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+        (6, 0) :     0 : 0.02136162913488141 :  None : False : False : NonNegativeReals
+        (6, 1) :     0 :                None :  None : False :  True : NonNegativeReals
+    u : Size=6, Index=u_index
+        Key    : Lower : Value                  : Upper : Fixed : Stale : Domain
+        (0, 0) :  None : 4.2094574383565004e-19 :  None : False : False :  Reals
+        (0, 1) :  None :                   None :  None : False :  True :  Reals
+        (1, 0) :  None : 4.2094574383565004e-19 :  None : False : False :  Reals
+        (1, 1) :  None :                   None :  None : False :  True :  Reals
+        (2, 0) :  None : 4.2094574383565004e-19 :  None : False : False :  Reals
+        (2, 1) :  None :                   None :  None : False :  True :  Reals
+    x : Size=14, Index=x_index
+        Key    : Lower : Value                  : Upper : Fixed : Stale : Domain
+        (0, 0) :  None :     0.8658818394574331 :  None : False : False :  Reals
+        (0, 1) :  None :     0.9251696401613111 :  None : False : False :  Reals
+        (1, 0) :  None : 1.0399745417446289e-17 :  None : False : False :  Reals
+        (1, 1) :  None :  5.210487225427026e-18 :  None : False : False :  Reals
+        (2, 0) :  None :  5.658808414544469e-18 :  None : False : False :  Reals
+        (2, 1) :  None :  2.833285456155238e-18 :  None : False : False :  Reals
+        (3, 0) :  None :     0.5002485804080411 :  None : False : False :  Reals
+        (3, 1) :  None :     0.2454646789948406 :  None : False : False :  Reals
+        (4, 0) :  None : 4.5204209404244255e-12 :  None : False : False :  Reals
+        (4, 1) :  None : 2.2617805560246682e-12 :  None : False : False :  Reals
+        (5, 0) :  None :  5.757982147964528e-19 :  None : False : False :  Reals
+        (5, 1) :  None :  2.881393876686581e-19 :  None : False : False :  Reals
+        (6, 0) :  None : 3.8041703607006145e-19 :  None : False : False :  Reals
+        (6, 1) :  None : 1.9076772635360134e-19 :  None : False : False :  Reals
+
+1 Objective Declarations
+    cost : Size=1, Index=None, Active=True
+        Key  : Active : Sense    : Expression
+        None :   True : minimize : (x[0,0] - 1.0)*100.0*(x[0,0] - 1.0) + 100.0*x[1,0]*x[1,0] + 100.0*x[2,0]*x[2,0] + 100.0*x[3,0]*x[3,0] + 100.0*x[4,0]*x[4,0] + 100.0*x[5,0]*x[5,0] + 100.0*x[6,0]*x[6,0] + u[0,0]*u[0,0] + u[1,0]*u[1,0] + u[2,0]*u[2,0] + (x[0,1] - 1.0)*1000.0*(x[0,1] - 1.0) + 1000.0*x[1,1]*x[1,1] + 1000.0*x[2,1]*x[2,1] + 1000.0*x[3,1]*x[3,1] + 1000.0*x[4,1]*x[4,1] + 1000.0*x[5,1]*x[5,1] + 1000.0*x[6,1]*x[6,1] + 100*epsL[0,0]*epsL[0,0] + 100*epsL[0,0]*epsL[1,0] + 100*epsL[0,0]*epsL[2,0] + 100*epsL[0,0]*epsL[3,0] + 100*epsL[0,0]*epsL[4,0] + 100*epsL[0,0]*epsL[5,0] + 100*epsL[0,0]*epsL[6,0] + 100*epsL[1,0]*epsL[0,0] + 100*epsL[1,0]*epsL[1,0] + 100*epsL[1,0]*epsL[2,0] + 100*epsL[1,0]*epsL[3,0] + 100*epsL[1,0]*epsL[4,0] + 100*epsL[1,0]*epsL[5,0] + 100*epsL[1,0]*epsL[6,0] + 100*epsL[2,0]*epsL[0,0] + 100*epsL[2,0]*epsL[1,0] + 100*epsL[2,0]*epsL[2,0] + 100*epsL[2,0]*epsL[3,0] + 100*epsL[2,0]*epsL[4,0] + 100*epsL[2,0]*epsL[5,0] + 100*epsL[2,0]*epsL[6,0] + 100*epsL[3,0]*epsL[0,0] + 100*epsL[3,0]*epsL[1,0] + 100*epsL[3,0]*epsL[2,0] + 100*epsL[3,0]*epsL[3,0] + 100*epsL[3,0]*epsL[4,0] + 100*epsL[3,0]*epsL[5,0] + 100*epsL[3,0]*epsL[6,0] + 100*epsL[4,0]*epsL[0,0] + 100*epsL[4,0]*epsL[1,0] + 100*epsL[4,0]*epsL[2,0] + 100*epsL[4,0]*epsL[3,0] + 100*epsL[4,0]*epsL[4,0] + 100*epsL[4,0]*epsL[5,0] + 100*epsL[4,0]*epsL[6,0] + 100*epsL[5,0]*epsL[0,0] + 100*epsL[5,0]*epsL[1,0] + 100*epsL[5,0]*epsL[2,0] + 100*epsL[5,0]*epsL[3,0] + 100*epsL[5,0]*epsL[4,0] + 100*epsL[5,0]*epsL[5,0] + 100*epsL[5,0]*epsL[6,0] + 100*epsL[6,0]*epsL[0,0] + 100*epsL[6,0]*epsL[1,0] + 100*epsL[6,0]*epsL[2,0] + 100*epsL[6,0]*epsL[3,0] + 100*epsL[6,0]*epsL[4,0] + 100*epsL[6,0]*epsL[5,0] + 100*epsL[6,0]*epsL[6,0] + 100*epsU[0,0]*epsU[0,0] + 100*epsU[0,0]*epsU[1,0] + 100*epsU[0,0]*epsU[2,0] + 100*epsU[0,0]*epsU[3,0] + 100*epsU[0,0]*epsU[4,0] + 100*epsU[0,0]*epsU[5,0] + 100*epsU[0,0]*epsU[6,0] + 100*epsU[1,0]*epsU[0,0] + 100*epsU[1,0]*epsU[1,0] + 100*epsU[1,0]*epsU[2,0] + 100*epsU[1,0]*epsU[3,0] + 100*epsU[1,0]*epsU[4,0] + 100*epsU[1,0]*epsU[5,0] + 100*epsU[1,0]*epsU[6,0] + 100*epsU[2,0]*epsU[0,0] + 100*epsU[2,0]*epsU[1,0] + 100*epsU[2,0]*epsU[2,0] + 100*epsU[2,0]*epsU[3,0] + 100*epsU[2,0]*epsU[4,0] + 100*epsU[2,0]*epsU[5,0] + 100*epsU[2,0]*epsU[6,0] + 100*epsU[3,0]*epsU[0,0] + 100*epsU[3,0]*epsU[1,0] + 100*epsU[3,0]*epsU[2,0] + 100*epsU[3,0]*epsU[3,0] + 100*epsU[3,0]*epsU[4,0] + 100*epsU[3,0]*epsU[5,0] + 100*epsU[3,0]*epsU[6,0] + 100*epsU[4,0]*epsU[0,0] + 100*epsU[4,0]*epsU[1,0] + 100*epsU[4,0]*epsU[2,0] + 100*epsU[4,0]*epsU[3,0] + 100*epsU[4,0]*epsU[4,0] + 100*epsU[4,0]*epsU[5,0] + 100*epsU[4,0]*epsU[6,0] + 100*epsU[5,0]*epsU[0,0] + 100*epsU[5,0]*epsU[1,0] + 100*epsU[5,0]*epsU[2,0] + 100*epsU[5,0]*epsU[3,0] + 100*epsU[5,0]*epsU[4,0] + 100*epsU[5,0]*epsU[5,0] + 100*epsU[5,0]*epsU[6,0] + 100*epsU[6,0]*epsU[0,0] + 100*epsU[6,0]*epsU[1,0] + 100*epsU[6,0]*epsU[2,0] + 100*epsU[6,0]*epsU[3,0] + 100*epsU[6,0]*epsU[4,0] + 100*epsU[6,0]*epsU[5,0] + 100*epsU[6,0]*epsU[6,0]
+
+8 Constraint Declarations
+    equality_constraints : Size=7, Index=equality_constraints_index, Active=True
+        Key    : Lower : Body                                                                                                                                                                                                                                                                                             : Upper : Active
+        (0, 0) :   0.0 :  x[0,1] - (x[0,0] - x[0,0] + 2.854271475071442e-20*(x[1,0] - x[1,0]) - 4.318429909037028e-20*(x[2,0] - x[2,0]) + 3.3879098967955793e-13*(x[3,0] - x[3,0]) + 0.035036456743585874*(x[4,0] - x[4,0]) - 4.244660925837368e-19*(x[5,0] - x[5,0]) + 7.794201448750017e-19*(x[6,0] - x[6,0]) + x[0,0]) :   0.0 :   True
+        (1, 0) :   0.0 :   x[1,1] - (x[1,0] - x[1,0] - 2.854271475071442e-20*(x[0,0] - x[0,0]) + 3.3879098967955793e-13*(x[2,0] - x[2,0]) + 4.318429909037028e-20*(x[3,0] - x[3,0]) + 4.244660925837368e-19*(x[4,0] - x[4,0]) + 0.035036456743585874*(x[5,0] - x[5,0]) - 0.035671370857428907*(x[6,0] - x[6,0]) + x[1,0]) :   0.0 :   True
+        (2, 0) :   0.0 :   x[2,1] - (4.318429909037028e-20*(x[0,0] - x[0,0]) - 3.3879098967955793e-13*(x[1,0] - x[1,0]) + x[2,0] - x[2,0] + 2.854271475071442e-20*(x[3,0] - x[3,0]) - 7.794201448750017e-19*(x[4,0] - x[4,0]) + 0.035671370857428907*(x[5,0] - x[5,0]) + 0.035036456743585874*(x[6,0] - x[6,0]) + x[2,0]) :   0.0 :   True
+        (3, 0) :   0.0 : x[3,1] - (-3.3879098967955793e-13*(x[0,0] - x[0,0]) - 4.318429909037028e-20*(x[1,0] - x[1,0]) - 2.854271475071442e-20*(x[2,0] - x[2,0]) + x[3,0] - x[3,0] - 0.035671370857428907*(x[4,0] - x[4,0]) - 7.794201448750017e-19*(x[5,0] - x[5,0]) - 4.244660925837368e-19*(x[6,0] - x[6,0]) + x[3,0]) :   0.0 :   True
+        (4, 0) :   0.0 :                                                                                                                               x[4,1] - (x[4,0] - x[4,0] + 1.8074070155624806e-20*(x[5,0] - x[5,0]) + 2.7345543624623194e-20*(x[6,0] - x[6,0]) + x[4,0] + 0.003134796238244514*(u[0,0] - u[0,0])) :   0.0 :   True
+        (5, 0) :   0.0 :                                                                                                                                 x[5,1] - (x[5,0] - x[5,0] - 2.745537323640148e-20*(x[4,0] - x[4,0]) - 3.258846662631938e-13*(x[6,0] - x[6,0]) + x[5,0] + 0.002380952380952381*(u[1,0] - u[1,0])) :   0.0 :   True
+        (6, 0) :   0.0 :                                                                                                                              x[6,1] - (1.6743240722178113e-20*(x[4,0] - x[4,0]) + 1.3135466394485734e-13*(x[5,0] - x[5,0]) + x[6,0] - x[6,0] + x[6,0] + 0.0019193857965451055*(u[2,0] - u[2,0])) :   0.0 :   True
+    final_const : Size=7, Index=nfIDX, Active=True
+        Key : Lower : Body   : Upper : Active
+          0 :   1.0 : x[0,1] :   1.0 :   True
+          1 :   0.0 : x[1,1] :   0.0 :   True
+          2 :   0.0 : x[2,1] :   0.0 :   True
+          3 :   0.0 : x[3,1] :   0.0 :   True
+          4 :   0.0 : x[4,1] :   0.0 :   True
+          5 :   0.0 : x[5,1] :   0.0 :   True
+          6 :   0.0 : x[6,1] :   0.0 :   True
+    init_const : Size=7, Index=xIDX, Active=True
+        Key : Lower                  : Body   : Upper                  : Active
+          0 :      0.713427417148578 : x[0,0] :      0.713427417148578 :   True
+          1 : 1.5588402897500033e-17 : x[1,0] : 1.5588402897500033e-17 :   True
+          2 :  8.489321851674736e-18 : x[2,0] :  8.489321851674736e-18 :   True
+          3 :     0.7007291348717174 : x[3,0] :     0.7007291348717174 :   True
+          4 : 6.7758197935911585e-12 : x[4,0] : 6.7758197935911585e-12 :   True
+          5 :  8.636859818074056e-19 : x[5,0] :  8.636859818074056e-19 :   True
+          6 :  5.708542950142883e-19 : x[6,0] :  5.708542950142883e-19 :   True
+    input_const1 : Size=3, Index=input_const1_index, Active=True
+        Key    : Lower : Body   : Upper : Active
+        (0, 0) :  -Inf : u[0,0] :   0.3 :   True
+        (1, 0) :  -Inf : u[1,0] :   0.3 :   True
+        (2, 0) :  -Inf : u[2,0] :   0.3 :   True
+    input_const2 : Size=3, Index=input_const2_index, Active=True
+        Key    : Lower : Body   : Upper : Active
+        (0, 0) :  -0.3 : u[0,0] :  +Inf :   True
+        (1, 0) :  -0.3 : u[1,0] :  +Inf :   True
+        (2, 0) :  -0.3 : u[2,0] :  +Inf :   True
+    state_const1 : Size=7, Index=state_const1_index, Active=True
+        Key    : Lower : Body                         : Upper : Active
+        (0, 0) :  -Inf :   x[0,0] - (1.0 + epsU[0,0]) :   0.0 :   True
+        (1, 0) :  -Inf :   x[1,0] - (1.0 + epsU[1,0]) :   0.0 :   True
+        (2, 0) :  -Inf :   x[2,0] - (1.0 + epsU[2,0]) :   0.0 :   True
+        (3, 0) :  -Inf :   x[3,0] - (1.0 + epsU[3,0]) :   0.0 :   True
+        (4, 0) :  -Inf : x[4,0] - (100.0 + epsU[4,0]) :   0.0 :   True
+        (5, 0) :  -Inf : x[5,0] - (100.0 + epsU[5,0]) :   0.0 :   True
+        (6, 0) :  -Inf : x[6,0] - (100.0 + epsU[6,0]) :   0.0 :   True
+    state_const2 : Size=7, Index=state_const2_index, Active=True
+        Key    : Lower : Body                        : Upper : Active
+        (0, 0) :  -Inf :   -1.0 - epsL[0,0] - x[0,0] :   0.0 :   True
+        (1, 0) :  -Inf :   -1.0 - epsL[1,0] - x[1,0] :   0.0 :   True
+        (2, 0) :  -Inf :   -1.0 - epsL[2,0] - x[2,0] :   0.0 :   True
+        (3, 0) :  -Inf :   -1.0 - epsL[3,0] - x[3,0] :   0.0 :   True
+        (4, 0) :  -Inf : -100.0 - epsL[4,0] - x[4,0] :   0.0 :   True
+        (5, 0) :  -Inf : -100.0 - epsL[5,0] - x[5,0] :   0.0 :   True
+        (6, 0) :  -Inf : -100.0 - epsL[6,0] - x[6,0] :   0.0 :   True
+    unit_quat_const : Size=1, Index=tIDX, Active=True
+        Key : Lower : Body                                          : Upper : Active
+          0 :   1.0 : x[0,0]**2 + x[1,0]**2 + x[2,0]**2 + x[3,0]**2 :   1.0 :   True
+
+26 Declarations: tIDX xIDX uIDX nfIDX x_index x u_index u epsL_index epsL epsU_index epsU cost equality_constraints_index equality_constraints init_const input_const1_index input_const1 input_const2_index input_const2 unit_quat_const state_const1_index state_const1 state_const2_index state_const2 final_const

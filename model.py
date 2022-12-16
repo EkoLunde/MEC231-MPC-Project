@@ -76,7 +76,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
             return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(-model.x[0, t]*model.x[4, t] - model.x[1, t]*model.x[5, t] - model.x[4, t]*model.x[6, t])) == 0.0 if t < model.N else pyo.Constraint.Skip
         # angular velocity
         else:
-            return model.x[i, t+1] - (model.x[i, t] + (Ts/2)*(I_b_inv[i-4, 0]*(-model.x[6, t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3)))
+            return model.x[i, t+1] - ( model.x[i, t] + (Ts/2)*(I_b_inv[i-4, 0]*(-model.x[6, t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3)))
                                 + I_b_inv[i-4, 1]*(model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) - model.x[5,t]*sum(I_b[2, j]*model.x[4+j, t] for j in range(3))) 
                                 + I_b_inv[i-4, 2]*(-model.x[6, t]*sum(I_b[0, j]*model.x[4+j, t] for j in range(3)) + model.x[5,t]*sum(I_b[1, j]*model.x[4+j, t] for j in range(3)))) + sum(model.u[j,t]*b_mag_skew[3*i, j] for j in range(3))) == 0.0 if t < model.N else pyo.Constraint.Skip
     model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
@@ -140,7 +140,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
 
     return [model, feas, xOpt, uOpt, JOpt]
 
-def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
+def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, xf):
     model = pyo.ConcreteModel()
     model.name = "Linear Satellite Dynamics Model"
     model.N = N
@@ -163,13 +163,14 @@ def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     model.R = R
     model.Af = Af
     model.bf = bf
+    model.xf = xf
 
     # Create state and input variables trajectory:
     model.x = pyo.Var(model.xIDX, model.tIDX)
     model.u = pyo.Var(model.uIDX, model.tIDX)
     model.epsL = pyo.Var(model.xIDX, model.tIDX, domain=pyo.NonNegativeReals)
     model.epsU = pyo.Var(model.xIDX, model.tIDX, domain=pyo.NonNegativeReals) # Slack variable is introduced 
-
+    print("\n\nhello\n\n")
     #Objective:
     def objective_rule(model):
         costX = 0.0
@@ -181,19 +182,19 @@ def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
             for i in model.xIDX:
                 for j in model.xIDX:
                     if t < model.N:
-                        costX += model.x[i, t] * model.Q[i, j] * model.x[j, t]
-                        CostSoftPenaltyEpsL += model.epsL[i,t] * model.epsL[j,t]
-                        CostSoftPenaltyEpsU += model.epsU[i,t] * model.epsU[j,t]
+                        costX += (model.x[i, t]-model.xf[i]) * model.Q[i, j] * (model.x[j, t]-model.xf[i])
+                        CostSoftPenaltyEpsL += model.epsL[i,t] * 100 * model.epsL[j,t]
+                        CostSoftPenaltyEpsU += model.epsU[i,t]* 100 * model.epsU[j,t]
 
         for t in model.tIDX:
             for i in model.uIDX:
                 for j in model.uIDX:
                     if t < model.N:
-                        costU += model.u[i, t] * model.R[i, j] * model.u[j, t]
+                        costU += (model.u[i, t]) * model.R[i, j] * (model.u[j, t])
 
         for i in model.xIDX:
             for j in model.xIDX:
-                costTerminal += model.x[i, model.N] * model.P[i, j] * model.x[j, model.N]
+                costTerminal += (model.x[i, model.N]-model.xf[i]) * model.P[i, j] * (model.x[j, model.N]-model.xf[i])
 
         return costX + costU + costTerminal + CostSoftPenaltyEpsL + CostSoftPenaltyEpsU
 
@@ -201,8 +202,8 @@ def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     
     # Linear model
     def cubesat_model(model,i,t):
-        return model.x[i, t+1] - (sum(model.A[i, j] * model.x[j, t] for j in model.xIDX)
-                               +  sum(model.B[i, j] * model.u[j, t] for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
+        return model.x[i, t+1] - (model.x[i,t] + sum(model.A[i, j] * (model.x[j, t]-model.x[j,0]) for j in model.xIDX)
+                               +  sum(model.B[i, j] * (model.u[j, t]-model.u[j,0]) for j in model.uIDX) ) == 0.0 if t < model.N else pyo.Constraint.Skip
     model.equality_constraints = pyo.Constraint(model.xIDX, model.tIDX, rule=cubesat_model)
     
     # Initial Constraints:
@@ -213,27 +214,34 @@ def solve_cftoc_linear(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af):
     model.input_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: uL[i] <= model.u[i, t] if t <= N-1 else pyo.Constraint.Skip)
     
     # State Constraint
-    #model.unit_quat_const = pyo.Constraint(model.tIDX, rule=lambda model, t: (model.x[0, t]**2 + model.x[1, t]**2 + model.x[2, t]**2 + model.x[3, t]**2) == 1 if t <= N-1 else pyo.Constraint.Skip)
+    model.unit_quat_const = pyo.Constraint(model.tIDX, rule=lambda model, t: (model.x[0, t]**2 + model.x[1, t]**2 + model.x[2, t]**2 + model.x[3, t]**2) == 1 if t <= N-1 else pyo.Constraint.Skip)
     model.state_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.x[i, t] <= xU[i] + model.epsU[i,t] if t <= N-1 else pyo.Constraint.Skip)
     model.state_const2 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: xL[i]-model.epsL[i,t] <= model.x[i, t] if t <= N-1 else pyo.Constraint.Skip)
     
     def final_const_rule(model, i):
         return sum(model.Af[i, j]*model.x[j, model.N] for j in model.xIDX) == model.bf[i] 
-    #model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
+    model.final_const = pyo.Constraint(model.nfIDX, rule=final_const_rule)
 
     # Solve
-    solver = pyo.SolverFactory('ipopt')
-    results = solver.solve(model)
-    check_solver_status(model, results)
-    if str(results.solver.termination_condition) == "optimal":
-        feas = True
-    else:
-        feas = False
+   # solver = pyo.SolverFactory('ipopt')
+   # results = solver.solve(model)
+   # check_solver_status(model, results)
+   # if str(results.solver.termination_condition) == "optimal":
+   #     feas = True
+   # else:
+   #     feas = False
 
-    #results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt')#, tee=True)
-    #model.display()
+    results = pyo.SolverFactory('mindtpy').solve(model, mip_solver='glpk', nlp_solver='ipopt', tee=True)
+    model.display()
+    with open('text/drit.txt', 'w') as output_file:
+        model.pprint(output_file)
+
     #model.pprint()
-    #feas=True
+    #instance.pprint(filename='foo.txt')
+    feas=True
+    #file = open('text/drit.txt', 'w')
+    #file.write(model.pprint())
+    #file.close()
 
     xOpt = np.asarray([[model.x[i,t]() for i in model.xIDX] for t in model.tIDX]).T
     uOpt = np.asarray([model.u[:,t]() for t in model.tIDX]).T

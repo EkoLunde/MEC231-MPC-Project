@@ -180,7 +180,7 @@ def mpc(Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
 
     return [model, feas, xOpt, uOpt]
 
-def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
+def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts,xf):
 
     nx = np.size(Q, 0)
     nu = np.size(R, 1)
@@ -191,13 +191,16 @@ def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
 
     xPred = np.zeros((nx, N+1, M))
     feas = np.zeros((M, ), dtype=bool)
-
+    print("\n\nhello2\n\n")
     for t in range(M):
         A_c, B_c = model_linearization(xOpt[:,t], I_b)
         A = np.eye(nx)+Ts*A_c
         B = Ts*B_c
+        hor = N
+        if t+N>M:
+            hor=M-t
 
-        [model, feas[t], x, u, J] = solve_cftoc_linear(A, B, P, Q, R, N, xOpt[:, t], xL, xU, uL, uU, bf, Af)
+        [model, feas[t], x, u, J] = solve_cftoc_linear(A, B, P, Q, R, hor, xOpt[:, t], xL, xU, uL, uU, bf, Af, xf)
 
         if not feas[t]:
             xOpt = []
@@ -206,7 +209,7 @@ def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
             print("infeasable at time ", t)
             break
         # Save open loop predictions
-        xPred[:, :, t] = x
+        #xPred[:, :, t] = x
 
         # Save closed loop trajectory
         # Note that the second column of x represents the optimal closed loop state
@@ -216,19 +219,19 @@ def mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts):
     return [model, feas, xOpt, uOpt]
 
 def run_linear_mpc():
-    I_b = (10**6)*np.array([[319,   0,   0],
+    I_b = (10**-1)*np.array([[319,   0,   0],
                             [  0, 420,   0],
                             [  0,   0, 521]])
-    omega_0 = np.array([1, -0.5, -0.7]).T
-    q_0 = np.array([0,0,1,0]).T
-    x0 = np.concatenate((q_0.T, omega_0.T))
+    omega_0 = np.array([0, 0, 0]).T
+    q_0 = np.array([0,0,0,1]).T
+    x0 = np.concatenate((q_0.T, omega_0.T)).T
     Ts = 0.1
-    N=30
-    M = 100   # Simulation steps
+    N = 10
+    M = 15   # Simulation steps
 
-    Q = np.eye(7)
+    Q = 100*np.eye(7)
     R = np.eye(3) #10*np.array([1]).reshape(1,1)
-    P = Q
+    P = 10*Q
     xL = np.array([-1.0, -1.0, -1.0, -1.0, -100.0, -100.0, -100.0]).T
     xU = np.array([1.0, 1.0, 1.0, 1.0, 100.0, 100.0, 100.0]).T
     uL = np.array([-0.3, -0.3, -0.3]).T
@@ -236,8 +239,9 @@ def run_linear_mpc():
 
     Af = np.eye(7)
     bf = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).T
-
-    return mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts)
+    xf = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).T
+    print("\n\nhello1\n\n")
+    return mpc_linear(P, Q, R, x0, I_b, N, M, xL, xU, uL, uU, Af, bf, Ts, xf)
 
 # I_b = (10**6)*np.array([[319,   0,   0],
 #                         [  0, 420,   0],
