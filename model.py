@@ -56,8 +56,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
             for j in model.xIDX:
                 costTerminal += model.x[i, model.N] * model.P[i, j] * model.x[j, model.N]
         return costX + costU + costTerminal #+ CostSoftPenaltyEpsU + CostSoftPenaltyEpsL
-
-    model.cost = pyo.Objective(rule = objective_rule, sense = pyo.minimize)
+    model.cost = pyo.Objective(rule = objective_rule_euler, sense = pyo.minimize)
     
     # nonlinear model
     def cubesat_model(model,i,t):
@@ -100,7 +99,7 @@ def solve_cftoc(A, B, P, Q, R, N, x0, xL, xU, uL, uU, bf, Af, b_mag_vec, b_mag_s
     model.init_const5 = pyo.Constraint(expr = model.x[4, 0] == x0[4])
     model.init_const6 = pyo.Constraint(expr = model.x[5, 0] == x0[5])
     model.init_const7 = pyo.Constraint(expr = model.x[6, 0] == x0[6])
-
+    model.cost = pyo.Objective(rule = objective_rule_euler, sense = pyo.minimize)
     #model.max_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: model.x[i, t] <= xU[i] if t <= N-1 else pyo.Constraint.Skip)
     #model.min_const1 = pyo.Constraint(model.xIDX, model.tIDX, rule=lambda model, i, t: xL[i] <=  model.x[i, t] if t <= N-1 else pyo.Constraint.Skip)
     model.max_const2 = pyo.Constraint(model.uIDX, model.tIDX, rule=lambda model, i, t: model.u[i, t] <= uU[i] if t <= N-1 else pyo.Constraint.Skip)

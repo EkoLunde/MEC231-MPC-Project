@@ -187,7 +187,7 @@ I_b_inv = np.linalg.inv(I_b)
 
 omega_0 = np.array([1, -0.5, -0.7]).T #
 q_0 = np.array([0,0,1,0]).T
-x0 = np.concatenate((q_0.T, omega_0.T))
+x0 = np.concatenate((q_0.T, omega_0.T)).T
 Ts = 0.1
 N=30
 M = 300   # Simulation steps
